@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Miner Dashboard — DarwinXPool</title>
+<style>
+:root{--bg:#0b0f14;--card:#121922;--fg:#e6f0ff;--muted:#94a3b8;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,Segoe UI,Roboto,Ubuntu}
+header{padding:16px 20px;background:#0f172a;border-bottom:1px solid #1f2937}
+h1{margin:0;font-size:18px}
+.container{max-width:1100px;margin:24px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid #1f2937;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{padding:14px;border-radius:12px;background:#0f172a;border:1px solid #1f2937;text-align:center}
+.stat .num{font-size:22px;font-weight:700}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+input[type=text]{flex:1;min-width:280px;background:#0f172a;border:1px solid #243041;color:#cbd5e1;border-radius:12px;padding:10px 12px;outline:none}
+button{background:var(--blue);border:none;color:white;border-radius:12px;padding:10px 16px;cursor:pointer;font-weight:600}
+.table{width:100%;border-collapse:collapse;margin-top:8px}
+.table th,.table td{padding:8px 10px;border-bottom:1px solid #243041}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#0b1220;border:1px solid #243041;color:#cbd5e1;font-size:12px}
+.small{color:var(--muted);font-size:12px}
+.addr{word-break:break-all}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+async function renderCharts(addr){
+  // Hashrate 24h
+  const HS = await fetch('/miner/'+addr+'/hashrate24h?bucket_minutes=5').then(r=>r.json());
+  const ctx1 = document.getElementById('hashChart').getContext('2d');
+  const labels = HS.labels.map(ts=>new Date(ts*1000).toLocaleTimeString());
+  const data = HS.hashrate_hs.map(v=>v);
+  window._hashChart && window._hashChart.destroy();
+  window._hashChart = new Chart(ctx1, {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Hashrate (H/s)', data, fill: false, tension: 0.2 }] },
+    options: { responsive:true, animation:false, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  // Shares timeline (24h)
+  const TL = await fetch('/miner/'+addr+'/shares/timeline?hours=24').then(r=>r.json());
+  const acc = []; const rej = []; const tlabels = [];
+  for(const it of TL.items){
+    tlabels.push(new Date(it.received_ts*1000).toLocaleTimeString());
+    acc.push(it.valid ? 1 : 0);
+    rej.push(!it.valid ? 1 : 0);
+  }
+  const ctx2 = document.getElementById('shareChart').getContext('2d');
+  window._shareChart && window._shareChart.destroy();
+  window._shareChart = new Chart(ctx2, {
+    type: 'bar',
+    data: { labels: tlabels, datasets: [
+      { label: 'Accepted', data: acc, stack: 's' },
+      { label: 'Rejected', data: rej, stack: 's' }
+    ] },
+    options: { responsive:true, animation:false, scales:{ y:{ beginAtZero:true } }, plugins:{ legend:{ position:'top' } } }
+  });
+}
+
+</script>
+</head>
+<body>
+<header><h1>DarwinXPool — Miner Dashboard</h1></header>
+<div class="container">
+  <div class="card">
+    <div class="row">
+      <input id="address" type="text" placeholder="Paste your payout address (bc1q...) and press Enter"/>
+      <button onclick="lookup()">Lookup</button>
+    </div>
+    <div class="small" style="margin-top:6px;">Tip: You can bookmark with <code>?address=your_bc1q</code></div>
+  </div>
+
+  <div id="panel" style="display:none;">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <div class="small">Address</div>
+          <div class="addr" id="m_addr">—</div>
+        </div>
+        <div>
+          <span class="badge" id="m_lastshare">Last share: —</span>
+          <span class="badge" id="m_diff">Diff: —</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="stat" style="grid-column: span 4;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div>Hashrate (24h)</div>
+          <div class="small">5-min buckets</div>
+        </div>
+        <canvas id="hashChart" height="90"></canvas>
+      </div>
+      <div class="stat" style="grid-column: span 4;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div>Shares Timeline (24h)</div>
+          <div class="small">Accepted vs Rejected</div>
+        </div>
+        <canvas id="shareChart" height="90"></canvas>
+      </div>
+    
+      <div class="stat"><div class="num" id="m_hash">—</div><div>Hashrate (est)</div><div class="small">last 10 min</div></div>
+      <div class="stat"><div class="num" id="m_acc">—</div><div>Accepted</div></div>
+      <div class="stat"><div class="num" id="m_rej">—</div><div>Rejected</div></div>
+      <div class="stat"><div class="num" id="m_bal">—</div><div>Balance (sats)</div></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px;">Recent Shares</h3>
+      <table class="table" id="sharesTable">
+        <thead><tr><th>Time</th><th>Status</th><th>Difficulty</th><th>Hash (truncated)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+function qs(k){return new URLSearchParams(location.search).get(k)||''}
+function fmtHashrate(h){if(h>=1e15)return (h/1e15).toFixed(2)+' PH/s';if(h>=1e12)return (h/1e12).toFixed(2)+' TH/s';if(h>=1e9)return (h/1e9).toFixed(2)+' GH/s';if(h>=1e6)return (h/1e6).toFixed(2)+' MH/s';if(h>=1e3)return (h/1e3).toFixed(2)+' kH/s';return Math.round(h)+' H/s'}
+async function lookup(){
+  const addr=document.getElementById('address').value.trim()
+  if(!addr) return
+  history.replaceState(null,'','?address='+encodeURIComponent(addr))
+  const s=await fetch('/miner/'+addr).then(r=>r.json()).catch(_=>null)
+  if(!s||!s.ok){alert('Miner not found yet — submit a share first.');return}
+  document.getElementById('panel').style.display='block'
+  document.getElementById('m_addr').textContent=addr
+  document.getElementById('m_diff').textContent='Diff: '+Math.round(s.difficulty)
+  document.getElementById('m_lastshare').textContent= 'Last share: ' + (s.last_share_ts? new Date(s.last_share_ts*1000).toLocaleString() : '—')
+  document.getElementById('m_hash').textContent=fmtHashrate(s.hashrate_hs || 0)
+  document.getElementById('m_acc').textContent=s.total_accepted||0
+  document.getElementById('m_rej').textContent=s.total_rejected||0
+  document.getElementById('m_bal').textContent=s.balance_sats||0
+  await renderCharts(addr);
+  const shares=await fetch('/miner/'+addr+'/shares?limit=100').then(r=>r.json())
+  const tbody=document.querySelector('#sharesTable tbody'); tbody.innerHTML=''
+  for(const x of shares.items){
+    const tr=document.createElement('tr')
+    tr.innerHTML=`<td>${new Date(x.received_ts*1000).toLocaleString()}</td><td>${x.valid?'<span style="color:#22c55e">Accepted</span>':'<span style="color:#ef4444">Rejected</span>'}</td><td>${Math.round(x.difficulty)}</td><td>${x.pow_hash.slice(0,16)}…</td>`
+    tbody.appendChild(tr)
+  }
+}
+document.getElementById('address').addEventListener('keydown',e=>{if(e.key==='Enter')lookup()})
+const preset=qs('address'); if(preset){document.getElementById('address').value=preset; lookup()}
+
+async function renderCharts(addr){
+  // Hashrate 24h
+  const HS = await fetch('/miner/'+addr+'/hashrate24h?bucket_minutes=5').then(r=>r.json());
+  const ctx1 = document.getElementById('hashChart').getContext('2d');
+  const labels = HS.labels.map(ts=>new Date(ts*1000).toLocaleTimeString());
+  const data = HS.hashrate_hs.map(v=>v);
+  window._hashChart && window._hashChart.destroy();
+  window._hashChart = new Chart(ctx1, {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Hashrate (H/s)', data, fill: false, tension: 0.2 }] },
+    options: { responsive:true, animation:false, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  // Shares timeline (24h)
+  const TL = await fetch('/miner/'+addr+'/shares/timeline?hours=24').then(r=>r.json());
+  const acc = []; const rej = []; const tlabels = [];
+  for(const it of TL.items){
+    tlabels.push(new Date(it.received_ts*1000).toLocaleTimeString());
+    acc.push(it.valid ? 1 : 0);
+    rej.push(!it.valid ? 1 : 0);
+  }
+  const ctx2 = document.getElementById('shareChart').getContext('2d');
+  window._shareChart && window._shareChart.destroy();
+  window._shareChart = new Chart(ctx2, {
+    type: 'bar',
+    data: { labels: tlabels, datasets: [
+      { label: 'Accepted', data: acc, stack: 's' },
+      { label: 'Rejected', data: rej, stack: 's' }
+    ] },
+    options: { responsive:true, animation:false, scales:{ y:{ beginAtZero:true } }, plugins:{ legend:{ position:'top' } } }
+  });
+}
+
+</script>
+</body>
+</html>

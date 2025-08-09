@@ -1,0 +1,15 @@
+[Unit]
+Description=DarwinX Stratum Server
+After=network.target
+
+[Service]
+User=darwinx
+Group=darwinx
+WorkingDirectory=/opt/darwinx
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/darwinx/venv/bin/python -m stratum.run
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
