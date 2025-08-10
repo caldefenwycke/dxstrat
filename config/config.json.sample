@@ -1,0 +1,11 @@
+{
+  "rpc": {
+    "host": "127.0.0.1",
+    "port": 8332,
+    "user": "RPC_USER",
+    "password": "RPC_PASS"
+  },
+  "pool": {
+    "stratum_port": 3333
+  }
+}
