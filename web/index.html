@@ -1,132 +1,251 @@
 <!doctype html>
+<html lang="en">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Darwin X Pool</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230b0d10'/%3E%3Cpath d='M18 40l10-22 6 10h12l-10 22-6-10H18z' fill='%23e7edf3'/%3E%3C/svg%3E" />
+
 <style>
   :root { color-scheme: dark; }
-  *{box-sizing:border-box}
-  body{margin:0;background:#0b0d10;color:#e7edf3;font:16px/1.5 system-ui,Segoe UI,Roboto,Ubuntu,Arial}
-  a{color:#7cc7ff;text-decoration:none} a:hover{text-decoration:underline}
-  .wrap{max-width:980px;margin:0 auto;padding:28px}
-  header{position:sticky;top:0;background:#0b0d10d9;backdrop-filter:saturate(120%) blur(6px);border-bottom:1px solid #151a20}
-  .brand{font-weight:700;font-size:22px}
-  nav{display:flex;gap:18px;align-items:center}
-  .row{display:flex;gap:28px;flex-wrap:wrap}
-  .card{background:#0f1419;border:1px solid #151a20;border-radius:12px;padding:16px}
-  .muted{opacity:.75}
-  .kbd{background:#11161c;border:1px solid #1a212a;border-radius:8px;padding:2px 8px}
-  pre{margin:0;background:#0f1419;border:1px solid #151a20;border-radius:12px;padding:14px;overflow:auto}
-  code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:14px}
-  h1{font-size:32px;margin:18px 0 12px} h2{font-size:22px;margin:28px 0 10px}
-  footer{border-top:1px solid #151a20;margin-top:36px;padding-top:18px}
-  .pill{display:inline-block;padding:2px 10px;border:1px solid #1a212a;border-radius:999px;background:#0f1419}
+  html,body { height:100% }
+  body{
+    margin:0; background:#0b0d10; color:#e7edf3; font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell;
+  }
+  .wrap{ max-width:1100px; margin:auto; padding:28px; }
+  header{
+    position:sticky; top:0; z-index:10; backdrop-filter:saturate(120%) blur(6px);
+    background:rgba(11,13,16,.6); border-bottom:1px solid #151a20;
+  }
+  .row{ display:flex; align-items:center; gap:16px; justify-content:space-between; }
+  .brand{ font-weight:700; letter-spacing:.2px; font-size:20px; display:flex; align-items:center; gap:10px }
+  .nav{ display:flex; gap:18px; font-size:14px }
+  .nav a{ color:#cfe3f7; text-decoration:none; opacity:.9 }
+  .nav a:hover{ opacity:1 }
+  .pillbar{ display:flex; gap:10px; flex-wrap:wrap }
+  .pill{
+    font-size:13px; padding:6px 10px; border:1px solid #1c242e; border-radius:999px; background:#0f1419;
+    color:#cfe3f7; display:inline-flex; align-items:center; gap:6px
+  }
+  .hero{ padding:28px 0 8px }
+  h1{ margin:8px 0 4px; font-size:32px }
+  h2{ margin:28px 0 8px; font-size:22px }
+  .card{
+    background:#0f1419; border:1px solid #1b232d; border-radius:14px; padding:18px; margin:14px 0;
+  }
+  code, .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 14px }
+  .muted{ opacity:.8 }
+  .grid{ display:grid; gap:14px }
+  @media(min-width:900px){ .grid-2{ grid-template-columns: 1fr 1fr } }
+  .kt{ background:#0b0d10; border:1px dashed #2a3644; border-radius:10px; padding:12px }
+  .btn{
+    appearance:none; border:1px solid #2a3644; background:#141a22; color:#e7edf3; padding:10px 14px;
+    border-radius:10px; font-weight:600; cursor:pointer
+  }
+  .btn:hover{ background:#18202a }
+  input[type=text]{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid #2a3644; background:#0b0f14; color:#e7edf3;
+    outline:none
+  }
+  .table{ width:100%; border-collapse:separate; border-spacing:0; }
+  .table th,.table td{ text-align:left; padding:10px 12px; border-bottom:1px solid #1b232d }
+  .right{ text-align:right }
+  .hide{ display:none !important }
+  footer{ opacity:.75; font-size:13px; padding:32px 0 }
 </style>
 
 <header>
-  <div class="wrap row" style="justify-content:space-between">
-    <div class="brand">Darwin X Pool</div>
-    <nav>
-      <a href="#connect">Connect</a>
-      <a href="#status">Status</a>
-      <a href="#fees">Fees & payouts</a>
-      <a href="#faq">FAQ</a>
-      <a href="#support">Support</a>
-    </nav>
+  <div class="wrap">
+    <div class="row">
+      <div class="brand">
+        <span style="width:10px;height:10px;border-radius:50%;background:#48d597;box-shadow:0 0 0 4px rgba(72,213,151,.15)"></span>
+        Darwin X Pool
+      </div>
+      <nav class="nav">
+        <a href="#connect">Connect</a>
+        <a href="#why">Why this pool</a>
+        <a href="#stats">Pool stats</a>
+        <a href="#miner">Miner stats</a>
+        <a href="https://discord.gg/" target="_blank" rel="noopener">Discord</a>
+      </nav>
+    </div>
+
+    <div class="hero">
+      <div class="pillbar" id="header-pills">
+        <span class="pill">Fee: <strong class="mono" id="pill-fee">…</strong>%</span>
+        <span class="pill hide" id="pill-miners">Miners: <strong class="mono" id="pill-miner-count">—</strong></span>
+        <span class="pill hide" id="pill-hash">Pool hashrate: <strong class="mono" id="pill-hashrate">—</strong></span>
+      </div>
+    </div>
   </div>
 </header>
 
 <main class="wrap">
-  <h1>Mine Bitcoin with Darwin X</h1>
-  <p class="muted">A minimal, fast pool UI. Point your miner and go.</p>
-
-  <section id="connect" class="row">
-    <div class="card" style="flex:1 1 380px">
-      <h2>Stratum endpoint</h2>
-      <p><span class="pill">stratum+tcp://pool.dxstrat.com:3333</span></p>
-
-      <h2>Miner settings</h2>
-      <p class="muted" style="margin-top:-6px">Use your <strong>Bitcoin address</strong> as the username. Worker name optional.</p>
-      <pre><code>URL     stratum+tcp://pool.dxstrat.com:3333
-USER    bc1qYOURADDRESS.worker
-PASS    x</code></pre>
-      <p class="muted">Works with most ASIC dashboards (Bitmain, Braiins, etc.).</p>
+  <section id="connect" class="card">
+    <h1>Point your miner</h1>
+    <div class="kt">
+      <div class="mono">stratum+tcp://pool.dxstrat.com:3333</div>
     </div>
-
-    <div class="card" style="flex:1 1 380px">
-      <h2>Tips</h2>
-      <ul class="muted">
-        <li>Use a <span class="kbd">worker</span> label to identify each miner.</li>
-        <li>Check your miner time is correct (NTP) for stable shares.</li>
-        <li>Firewall: outbound TCP <span class="kbd">3333</span>.</li>
-      </ul>
-      <h2>API</h2>
-      <p>
-        <a href="/api/pool"><code>/api/pool</code></a>
-      </p>
-    </div>
+    <p class="muted">Works with popular miners (cgminer/bmminer/braiins/etc.). Username = your payout address. Password can be anything.</p>
   </section>
 
-  <section id="status" style="margin-top:28px">
+  <section id="why" class="grid grid-2">
     <div class="card">
-      <h2>Pool status</h2>
-      <pre id="pool-json"><code>Loading…</code></pre>
-    </div>
-  </section>
-
-  <section id="fees" class="row" style="margin-top:28px">
-    <div class="card" style="flex:1 1 380px">
-      <h2>Fees & payouts</h2>
+      <h2>What makes this pool different</h2>
       <ul>
-        <li>Pool fee: <strong>2%</strong></li>
-        <li>Minimum payout: <strong>1,000,000 sats (0.01 BTC)</strong></li>
-        <li>Payout window: <strong>daily ~02:00 UTC</strong></li>
+        <li>Low 2% fee with transparent accounting.</li>
+        <li>Fast job updates + safe nTime drift (low stale shares).</li>
+        <li>Daily automatic payouts above your minimum.</li>
+        <li>Open API for dashboards and tooling.</li>
       </ul>
-      <p class="muted">Details subject to change as we tune the pool.</p>
     </div>
-    <div class="card" style="flex:1 1 380px">
-      <h2>Transparency</h2>
-      <p class="muted">Open repo, simple config, and a clear fee. More stats endpoints coming soon.</p>
-      <p><a href="https://github.com/caldefenwycke/dxstrat" target="_blank" rel="noopener">GitHub repo →</a></p>
-    </div>
-  </section>
-
-  <section id="faq" style="margin-top:28px">
     <div class="card">
-      <h2>FAQ</h2>
-      <p><strong>What do I use for username/password?</strong><br>
-      Username is your <em>Bitcoin address</em>. Password can be anything (e.g. <code>x</code>).</p>
-      <p><strong>When do I get paid?</strong><br>
-      Once your balance reaches the minimum, we pay out during the daily cycle (~02:00 UTC).</p>
-    </div>
-  </section>
-
-  <section id="support" style="margin-top:28px">
-    <div class="card">
-      <h2>Support</h2>
-      <p>Questions or issues? Ping us:</p>
+      <h2>Quick links</h2>
       <ul>
-        <li>Discord: <a href="#" onclick="alert('Add your Discord invite link');return false;">invite link</a></li>
-        <li>Email: <a href="mailto:ops@dxstrat.com">ops@dxstrat.com</a></li>
+        <li><a href="/api/pool" target="_blank" rel="noopener">/api/pool</a> – basic pool info</li>
+        <li><a href="/api" target="_blank" rel="noopener">/api</a> – API root (if enabled)</li>
       </ul>
+      <p class="muted">If an endpoint isn’t available yet, this page hides the widget automatically.</p>
     </div>
+  </section>
+
+  <section id="stats" class="card">
+    <h2>Pool stats</h2>
+    <table class="table">
+      <tbody>
+        <tr><th>Name</th><td id="pool-name">—</td></tr>
+        <tr><th>Domain</th><td id="pool-domain">—</td></tr>
+        <tr><th>Fee</th><td id="pool-fee">—</td></tr>
+        <tr class="hide" id="row-miner-count"><th>Active miners</th><td id="pool-miners">—</td></tr>
+        <tr class="hide" id="row-hashrate"><th>Estimated hashrate</th><td id="pool-hashrate">—</td></tr>
+        <tr class="hide" id="row-blocks24"><th>Blocks (24h)</th><td id="pool-blocks24">—</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="miner" class="card">
+    <h2>Miner stats</h2>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+      <input id="addr" type="text" placeholder="Enter your BTC address (bc1… / 1… / 3…)" />
+      <button class="btn" id="btnLookup">Lookup</button>
+    </div>
+    <div id="miner-res" class="hide" style="margin-top:12px">
+      <table class="table">
+        <tbody>
+          <tr><th>Address</th><td id="m-addr">—</td></tr>
+          <tr><th>Reported hashrate</th><td id="m-hash">—</td></tr>
+          <tr><th>Valid shares (24h)</th><td id="m-shares">—</td></tr>
+          <tr><th>Unpaid balance</th><td id="m-balance">—</td></tr>
+          <tr><th>Last share</th><td id="m-last">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p id="miner-msg" class="muted" style="margin-top:8px"></p>
   </section>
 
   <footer class="muted">
-    © <span id="y"></span> Darwin X. Be excellent to your hashboards. ⚡
+    © <span id="year"></span> Darwin X Pool • Secure • Efficient • Transparent
   </footer>
 </main>
 
 <script>
-  // Fill year
-  document.getElementById('y').textContent = new Date().getFullYear();
+const $ = (s)=>document.querySelector(s);
+const show = (el, yes=true)=> el.classList[yes ? 'remove' : 'add']('hide');
 
-  // Fetch pool JSON
-  fetch('/api/pool')
-    .then(r => r.json())
-    .then(j => {
-      document.getElementById('pool-json').textContent = JSON.stringify(j, null, 2);
-    })
-    .catch(() => {
-      document.getElementById('pool-json').textContent = 'API unavailable';
-    });
+function fmtHash(h){
+  if(h==null || isNaN(h)) return '—';
+  const units = ['H/s','kH/s','MH/s','GH/s','TH/s','PH/s','EH/s'];
+  let i=0, x=Number(h);
+  while(x>=1000 && i<units.length-1){ x/=1000; i++; }
+  return x.toFixed(x>=100?0:x>=10?1:2)+' '+units[i];
+}
+function fmtAmt(sats){
+  if(sats==null || isNaN(sats)) return '—';
+  return (Number(sats)/1e8).toFixed(8)+' BTC';
+}
+
+async function j(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function loadPool(){
+  try{
+    const p = await j('/api/pool');
+    $('#pool-name').textContent = p.name ?? 'DarwinX Pool';
+    $('#pool-domain').textContent = p.domain ?? 'dxstrat.com';
+    const fee = (p.fee_percent ?? p.fee ?? 0).toString();
+    $('#pool-fee').textContent = fee + ' %';
+    $('#pill-fee').textContent = fee;
+
+    // Try optional endpoints for richer stats. Hide if missing.
+    try{
+      const s = await j('/api/stats'); // adjust if your API uses different path
+      if (s.miners != null) {
+        $('#pool-miners').textContent = s.miners;
+        $('#pill-miner-count').textContent = s.miners;
+        show($('#row-miner-count'), true);
+        show($('#pill-miners'), true);
+      }
+      if (s.hashrate != null) {
+        const hh = fmtHash(s.hashrate);
+        $('#pool-hashrate').textContent = hh;
+        $('#pill-hashrate').textContent = hh;
+        show($('#row-hashrate'), true);
+        show($('#pill-hash'), true);
+      }
+      if (s.blocks24 != null) {
+        $('#pool-blocks24').textContent = s.blocks24;
+        show($('#row-blocks24'), true);
+      }
+    } catch(_) {
+      // no /api/stats yet — that’s fine
+    }
+  } catch(e){
+    console.error('pool fetch failed', e);
+  }
+}
+
+function validAddr(a){
+  return /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{24,}$/i.test(a.trim());
+}
+
+async function lookupMiner(){
+  const a = $('#addr').value.trim();
+  $('#miner-msg').textContent = '';
+  if(!validAddr(a)){
+    $('#miner-msg').textContent = 'Enter a valid Bitcoin address.';
+    show($('#miner-res'), false);
+    return;
+  }
+  $('#m-addr').textContent = a;
+  show($('#miner-res'), false);
+
+  // Try common patterns and use the first that works
+  const candidates = [
+    `/api/miner/${encodeURIComponent(a)}`,
+    `/api/miner?address=${encodeURIComponent(a)}`,
+    `/api/miners/${encodeURIComponent(a)}`
+  ];
+  let data=null, lastErr=null;
+  for(const u of candidates){
+    try { data = await j(u); break; } catch(e){ lastErr=e; }
+  }
+  if(!data){
+    $('#miner-msg').textContent = 'Miner endpoint not available yet.';
+    return;
+  }
+  // Try to map common field names; fall back gracefully
+  $('#m-hash').textContent   = fmtHash(data.hashrate ?? data.reported_hashrate ?? data.hr);
+  $('#m-shares').textContent = (data.valid_shares_24h ?? data.shares_24h ?? data.valid ?? '—');
+  $('#m-balance').textContent= fmtAmt(data.unpaid_sats ?? data.balance_sats ?? data.unpaid ?? data.balance);
+  $('#m-last').textContent   = (data.last_share_at ?? data.last_share ?? '—');
+  show($('#miner-res'), true);
+}
+
+$('#btnLookup').addEventListener('click', lookupMiner);
+$('#addr').addEventListener('keydown', e=>{ if(e.key==='Enter') lookupMiner(); });
+$('#year').textContent = new Date().getFullYear();
+loadPool();
 </script>
+</html>
