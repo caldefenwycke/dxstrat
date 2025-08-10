@@ -144,4 +144,9 @@ def darwinx_series(minutes: int = 60):
     minutes = max(1, min(720, int(minutes)))
     since = int(time.time()) - minutes*60
     with db() as c:
-        rows = c.execute("SELECT ts, generated_since_template FROM engine_stats_series WHERE ts>=? ORDER BY ts ASC", (since,)).fetchall(
+        rows = c.execute(
+            "SELECT ts, generated_since_template FROM engine_stats_series WHERE ts>=? ORDER BY ts ASC",
+            (since,)
+        ).fetchall()
+    return {"items": [dict(r) for r in rows]}
+
