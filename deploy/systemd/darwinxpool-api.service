@@ -1,0 +1,16 @@
+# /etc/systemd/system/darwinxpool-api.service
+[Unit]
+Description=DarwinXPool API
+After=network.target
+
+[Service]
+User=darwinx
+Group=darwinx
+WorkingDirectory=/opt/darwinx
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/darwinx/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8080
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

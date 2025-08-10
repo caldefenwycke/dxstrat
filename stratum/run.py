@@ -1,13 +1,16 @@
-import json, asyncio
-from stratum_server import StratumServer
+import asyncio, json
+from pathlib import Path
+from stratum.stratum_server import StratumServer, CONFIG_PATH
 
 def load_cfg():
-    with open('config/config.json','r',encoding='utf-8') as f:
+    p = Path("/opt/darwinx") / CONFIG_PATH
+    with open(p, "r") as f:
         return json.load(f)
 
-async def main():
-    server = StratumServer(load_cfg())
-    await server.start()
+def main():
+    cfg = load_cfg()
+    srv = StratumServer(cfg)
+    asyncio.run(srv.start())
 
-if __name__ == '__main__':
-    asyncio.run(main())
+if __name__ == "__main__":
+    main()
