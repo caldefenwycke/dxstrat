@@ -1,25 +1,132 @@
 <!doctype html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Darwin X Pool</title>
 <style>
   :root { color-scheme: dark; }
-  body{margin:0;background:#0b0d10;color:#e7edf3;font:16px system-ui}
-  .wrap{max-width:900px;margin:40px auto;padding:24px}
-  code{background:#0f1419;padding:2px 6px;border-radius:6px}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0b0d10;color:#e7edf3;font:16px/1.5 system-ui,Segoe UI,Roboto,Ubuntu,Arial}
+  a{color:#7cc7ff;text-decoration:none} a:hover{text-decoration:underline}
+  .wrap{max-width:980px;margin:0 auto;padding:28px}
+  header{position:sticky;top:0;background:#0b0d10d9;backdrop-filter:saturate(120%) blur(6px);border-bottom:1px solid #151a20}
+  .brand{font-weight:700;font-size:22px}
+  nav{display:flex;gap:18px;align-items:center}
+  .row{display:flex;gap:28px;flex-wrap:wrap}
+  .card{background:#0f1419;border:1px solid #151a20;border-radius:12px;padding:16px}
   .muted{opacity:.75}
-  pre{background:#0f1419;padding:12px;border-radius:8px;overflow:auto}
+  .kbd{background:#11161c;border:1px solid #1a212a;border-radius:8px;padding:2px 8px}
+  pre{margin:0;background:#0f1419;border:1px solid #151a20;border-radius:12px;padding:14px;overflow:auto}
+  code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:14px}
+  h1{font-size:32px;margin:18px 0 12px} h2{font-size:22px;margin:28px 0 10px}
+  footer{border-top:1px solid #151a20;margin-top:36px;padding-top:18px}
+  .pill{display:inline-block;padding:2px 10px;border:1px solid #1a212a;border-radius:999px;background:#0f1419}
 </style>
-<div class="wrap">
-  <h1>Darwin X Pool</h1>
-  <p class="muted">Point your miner at:</p>
-  <p><code>stratum+tcp://pool.dxstrat.com:3333</code></p>
-  <h3>Pool status</h3>
-  <pre id="s">Loading…</pre>
-</div>
+
+<header>
+  <div class="wrap row" style="justify-content:space-between">
+    <div class="brand">Darwin X Pool</div>
+    <nav>
+      <a href="#connect">Connect</a>
+      <a href="#status">Status</a>
+      <a href="#fees">Fees & payouts</a>
+      <a href="#faq">FAQ</a>
+      <a href="#support">Support</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Mine Bitcoin with Darwin X</h1>
+  <p class="muted">A minimal, fast pool UI. Point your miner and go.</p>
+
+  <section id="connect" class="row">
+    <div class="card" style="flex:1 1 380px">
+      <h2>Stratum endpoint</h2>
+      <p><span class="pill">stratum+tcp://pool.dxstrat.com:3333</span></p>
+
+      <h2>Miner settings</h2>
+      <p class="muted" style="margin-top:-6px">Use your <strong>Bitcoin address</strong> as the username. Worker name optional.</p>
+      <pre><code>URL     stratum+tcp://pool.dxstrat.com:3333
+USER    bc1qYOURADDRESS.worker
+PASS    x</code></pre>
+      <p class="muted">Works with most ASIC dashboards (Bitmain, Braiins, etc.).</p>
+    </div>
+
+    <div class="card" style="flex:1 1 380px">
+      <h2>Tips</h2>
+      <ul class="muted">
+        <li>Use a <span class="kbd">worker</span> label to identify each miner.</li>
+        <li>Check your miner time is correct (NTP) for stable shares.</li>
+        <li>Firewall: outbound TCP <span class="kbd">3333</span>.</li>
+      </ul>
+      <h2>API</h2>
+      <p>
+        <a href="/api/pool"><code>/api/pool</code></a>
+      </p>
+    </div>
+  </section>
+
+  <section id="status" style="margin-top:28px">
+    <div class="card">
+      <h2>Pool status</h2>
+      <pre id="pool-json"><code>Loading…</code></pre>
+    </div>
+  </section>
+
+  <section id="fees" class="row" style="margin-top:28px">
+    <div class="card" style="flex:1 1 380px">
+      <h2>Fees & payouts</h2>
+      <ul>
+        <li>Pool fee: <strong>2%</strong></li>
+        <li>Minimum payout: <strong>1,000,000 sats (0.01 BTC)</strong></li>
+        <li>Payout window: <strong>daily ~02:00 UTC</strong></li>
+      </ul>
+      <p class="muted">Details subject to change as we tune the pool.</p>
+    </div>
+    <div class="card" style="flex:1 1 380px">
+      <h2>Transparency</h2>
+      <p class="muted">Open repo, simple config, and a clear fee. More stats endpoints coming soon.</p>
+      <p><a href="https://github.com/caldefenwycke/dxstrat" target="_blank" rel="noopener">GitHub repo →</a></p>
+    </div>
+  </section>
+
+  <section id="faq" style="margin-top:28px">
+    <div class="card">
+      <h2>FAQ</h2>
+      <p><strong>What do I use for username/password?</strong><br>
+      Username is your <em>Bitcoin address</em>. Password can be anything (e.g. <code>x</code>).</p>
+      <p><strong>When do I get paid?</strong><br>
+      Once your balance reaches the minimum, we pay out during the daily cycle (~02:00 UTC).</p>
+    </div>
+  </section>
+
+  <section id="support" style="margin-top:28px">
+    <div class="card">
+      <h2>Support</h2>
+      <p>Questions or issues? Ping us:</p>
+      <ul>
+        <li>Discord: <a href="#" onclick="alert('Add your Discord invite link');return false;">invite link</a></li>
+        <li>Email: <a href="mailto:ops@dxstrat.com">ops@dxstrat.com</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="muted">
+    © <span id="y"></span> Darwin X. Be excellent to your hashboards. ⚡
+  </footer>
+</main>
+
 <script>
-  fetch("/api/pool")
+  // Fill year
+  document.getElementById('y').textContent = new Date().getFullYear();
+
+  // Fetch pool JSON
+  fetch('/api/pool')
     .then(r => r.json())
-    .then(j => s.textContent = JSON.stringify(j, null, 2))
-    .catch(() => s.textContent = "API offline");
+    .then(j => {
+      document.getElementById('pool-json').textContent = JSON.stringify(j, null, 2);
+    })
+    .catch(() => {
+      document.getElementById('pool-json').textContent = 'API unavailable';
+    });
 </script>
