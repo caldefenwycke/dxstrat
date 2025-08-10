@@ -8,3 +8,5 @@ venv/
 *.db
 .cache/
 .lesshst
+config/config.json
+config/*.secret*.json
