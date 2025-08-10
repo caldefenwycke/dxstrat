@@ -21,6 +21,11 @@ def cfg():
 def health():
     return {"ok": True, "time": int(time.time()), "db_exists": os.path.exists(DB_PATH)}
 
+@app.get("/pool")
+def pool_info():
+    # minimal pool summary – expand later with hashrate, fee, etc.
+    return {"name": "DarwinX Pool", "domain": "dxstrat.com", "fee_percent": 2.0}
+
 @app.get("/stats")
 def stats():
     with db() as c:
@@ -33,6 +38,18 @@ def stats():
 @app.get("/")
 def root():
     return {"ok": True, "name": "DarwinXPool API", "routes": ["/health","/stats","/miner","/darwinx"]}
+
+@app.get("/blocks")
+def blocks_list(limit: int = 50):
+    limit = max(1, min(200, int(limit)))
+    with db() as c:
+        rows = c.execute("""
+            SELECT height, hash, found_ts, status, reward_sats
+            FROM blocks
+            ORDER BY found_ts DESC NULLS LAST, height DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+    return {"items": [dict(r) for r in rows]}
 
 # ---------- Public Pages ----------
 with open(os.path.join(os.path.dirname(__file__), "miner.html"), "r", encoding="utf-8") as f:
@@ -149,4 +166,5 @@ def darwinx_series(minutes: int = 60):
             (since,)
         ).fetchall()
     return {"items": [dict(r) for r in rows]}
+
 
