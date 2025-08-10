@@ -1,1 +1,25 @@
-<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Darwin X Pool</title><style>body{margin:0;background:#0b0d10;color:#e7edf3;font:16px system-ui}a{color:#00e676}code{background:#0f1419;padding:2px 6px;border-radius:6px}</style><div style=max-width:900px;margin:40px auto;padding:24px><h1>Darwin X Pool</h1><p>Point your miner at <code>stratum+tcp://YOUR.DOMAIN:3333</code></p><pre id=s>Loading…</pre></div><script>fetch("/api/pool").then(r=>r.json()).then(j=>s.textContent=JSON.stringify(j,null,2)).catch(()=>s.textContent="API offline");</script>
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Darwin X Pool</title>
+<style>
+  :root { color-scheme: dark; }
+  body{margin:0;background:#0b0d10;color:#e7edf3;font:16px system-ui}
+  .wrap{max-width:900px;margin:40px auto;padding:24px}
+  code{background:#0f1419;padding:2px 6px;border-radius:6px}
+  .muted{opacity:.75}
+  pre{background:#0f1419;padding:12px;border-radius:8px;overflow:auto}
+</style>
+<div class="wrap">
+  <h1>Darwin X Pool</h1>
+  <p class="muted">Point your miner at:</p>
+  <p><code>stratum+tcp://pool.dxstrat.com:3333</code></p>
+  <h3>Pool status</h3>
+  <pre id="s">Loading…</pre>
+</div>
+<script>
+  fetch("/api/pool")
+    .then(r => r.json())
+    .then(j => s.textContent = JSON.stringify(j, null, 2))
+    .catch(() => s.textContent = "API offline");
+</script>
