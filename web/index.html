@@ -1,251 +1,393 @@
 <!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Darwin X Pool</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230b0d10'/%3E%3Cpath d='M18 40l10-22 6 10h12l-10 22-6-10H18z' fill='%23e7edf3'/%3E%3C/svg%3E" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DarwinX Pool</title>
+  <meta name="description" content="DarwinX Bitcoin mining pool – low fee, transparent API, simple setup." />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0d10;
+      --panel: #0f1419;
+      --panel-2: #121820;
+      --text: #e7edf3;
+      --muted: #a9b4bf;
+      --line: #1b242e;
+      --accent: #58a6ff;
+      --ok: #3fb950;
+      --warn: #e3b341;
+      --err: #f85149;
+      --shadow: 0 6px 24px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box }
+    html,body { height: 100% }
+    body { margin:0; background:var(--bg); color:var(--text); font: 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji" }
+    a { color: var(--accent); text-decoration: none }
+    a:hover { text-decoration: underline }
 
-<style>
-  :root { color-scheme: dark; }
-  html,body { height:100% }
-  body{
-    margin:0; background:#0b0d10; color:#e7edf3; font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell;
-  }
-  .wrap{ max-width:1100px; margin:auto; padding:28px; }
-  header{
-    position:sticky; top:0; z-index:10; backdrop-filter:saturate(120%) blur(6px);
-    background:rgba(11,13,16,.6); border-bottom:1px solid #151a20;
-  }
-  .row{ display:flex; align-items:center; gap:16px; justify-content:space-between; }
-  .brand{ font-weight:700; letter-spacing:.2px; font-size:20px; display:flex; align-items:center; gap:10px }
-  .nav{ display:flex; gap:18px; font-size:14px }
-  .nav a{ color:#cfe3f7; text-decoration:none; opacity:.9 }
-  .nav a:hover{ opacity:1 }
-  .pillbar{ display:flex; gap:10px; flex-wrap:wrap }
-  .pill{
-    font-size:13px; padding:6px 10px; border:1px solid #1c242e; border-radius:999px; background:#0f1419;
-    color:#cfe3f7; display:inline-flex; align-items:center; gap:6px
-  }
-  .hero{ padding:28px 0 8px }
-  h1{ margin:8px 0 4px; font-size:32px }
-  h2{ margin:28px 0 8px; font-size:22px }
-  .card{
-    background:#0f1419; border:1px solid #1b232d; border-radius:14px; padding:18px; margin:14px 0;
-  }
-  code, .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size: 14px }
-  .muted{ opacity:.8 }
-  .grid{ display:grid; gap:14px }
-  @media(min-width:900px){ .grid-2{ grid-template-columns: 1fr 1fr } }
-  .kt{ background:#0b0d10; border:1px dashed #2a3644; border-radius:10px; padding:12px }
-  .btn{
-    appearance:none; border:1px solid #2a3644; background:#141a22; color:#e7edf3; padding:10px 14px;
-    border-radius:10px; font-weight:600; cursor:pointer
-  }
-  .btn:hover{ background:#18202a }
-  input[type=text]{
-    width:100%; padding:10px 12px; border-radius:10px; border:1px solid #2a3644; background:#0b0f14; color:#e7edf3;
-    outline:none
-  }
-  .table{ width:100%; border-collapse:separate; border-spacing:0; }
-  .table th,.table td{ text-align:left; padding:10px 12px; border-bottom:1px solid #1b232d }
-  .right{ text-align:right }
-  .hide{ display:none !important }
-  footer{ opacity:.75; font-size:13px; padding:32px 0 }
-</style>
+    /* Topbar */
+    .topbar { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(120%) blur(8px); background: rgba(11,13,16,.7); border-bottom:1px solid var(--line) }
+    .topbar-inner { max-width: 1200px; margin:0 auto; display:flex; align-items:center; gap:18px; padding:12px 20px }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:700 }
+    .brand .dot { width:10px; height:10px; border-radius:50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(63,185,80,.15) }
+    nav { margin-left:auto; display:flex; gap:18px }
+    nav a { opacity:.9 }
 
-<header>
-  <div class="wrap">
-    <div class="row">
-      <div class="brand">
-        <span style="width:10px;height:10px;border-radius:50%;background:#48d597;box-shadow:0 0 0 4px rgba(72,213,151,.15)"></span>
-        Darwin X Pool
-      </div>
-      <nav class="nav">
+    /* Wrap & sections */
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 64px }
+    .hero { display:grid; grid-template-columns: 1.2fr .8fr; gap:24px; align-items:stretch; margin-top:24px }
+    @media (max-width: 870px){ .hero{ grid-template-columns: 1fr } }
+
+    .card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card .pad { padding: 20px }
+    .h1 { font-size: clamp(26px, 3vw, 36px); line-height:1.1; margin: 0 0 10px; letter-spacing: .2px }
+    .muted { color: var(--muted) }
+    .tag { display:inline-block; padding: 4px 10px; border:1px solid var(--line); border-radius: 999px; font-size: 12px; color:var(--muted) }
+
+    .stats-strip { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; margin-top: 14px }
+    @media (max-width:920px){ .stats-strip { grid-template-columns: repeat(2, minmax(0,1fr)) } }
+    @media (max-width:520px){ .stats-strip { grid-template-columns: 1fr } }
+    .stat { padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:#0d1217 }
+    .stat .label { font-size:12px; color:var(--muted) }
+    .stat .value { margin-top:6px; font-weight:700; font-size:18px }
+
+    .grid { display:grid; gap:18px; grid-template-columns: repeat(3, minmax(0,1fr)); margin-top:24px }
+    @media (max-width:1000px){ .grid{ grid-template-columns: repeat(2, minmax(0,1fr)) } }
+    @media (max-width:700px){ .grid{ grid-template-columns: 1fr } }
+
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px }
+    .kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#0d1217; padding:2px 6px; border-radius:6px; border:1px solid var(--line) }
+
+    .btn { display:inline-flex; align-items:center; gap:10px; appearance:none; border:1px solid var(--line); background:#0d1217; color:var(--text); border-radius: 12px; padding:10px 14px; cursor:pointer }
+    .btn:hover { background:#121821 }
+
+    .list { display:grid; gap:10px; margin: 8px 0 0; padding:0; list-style:none }
+    .list li { display:flex; gap:10px; align-items:flex-start }
+    .list .dot { margin-top:.45em; width:7px; height:7px; background:var(--accent); border-radius:50% }
+
+    .codeblock { position:relative; border:1px solid var(--line); border-radius:12px; overflow:auto; background: #0d1217 }
+    .codeblock pre { margin:0; padding:14px }
+    .codeblock .copy { position:absolute; top:8px; right:8px }
+
+    .mini { display:flex; gap:10px; align-items:center; flex-wrap:wrap }
+    .kvs { display:grid; grid-template-columns: auto 1fr; gap:8px 12px }
+    .kv .k { color:var(--muted) }
+
+    .search { display:flex; gap:10px; align-items:center; margin-top:10px }
+    .search input { flex:1; border-radius:12px; background:#0d1217; color:var(--text); border:1px solid var(--line); padding:10px 12px }
+
+    .table { width:100%; border-collapse: collapse; margin-top:10px; font-size:14px }
+    .table th, .table td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left }
+    .table th { color:var(--muted); font-weight:600; background:#0b1116 }
+    .empty { padding:20px; text-align:center; color:var(--muted) }
+
+    footer { margin-top: 48px; color: var(--muted) }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="dot" aria-hidden="true"></span> DarwinX Pool</div>
+      <nav>
         <a href="#connect">Connect</a>
-        <a href="#why">Why this pool</a>
-        <a href="#stats">Pool stats</a>
-        <a href="#miner">Miner stats</a>
-        <a href="https://discord.gg/" target="_blank" rel="noopener">Discord</a>
+        <a href="#stats">Stats</a>
+        <a href="#miner">Miner Lookup</a>
+        <a href="#about">About</a>
       </nav>
     </div>
+  </header>
 
-    <div class="hero">
-      <div class="pillbar" id="header-pills">
-        <span class="pill">Fee: <strong class="mono" id="pill-fee">…</strong>%</span>
-        <span class="pill hide" id="pill-miners">Miners: <strong class="mono" id="pill-miner-count">—</strong></span>
-        <span class="pill hide" id="pill-hash">Pool hashrate: <strong class="mono" id="pill-hashrate">—</strong></span>
+  <main class="wrap">
+    <!-- HERO + HEADER STATS -->
+    <section class="hero">
+      <div class="card">
+        <div class="pad">
+          <div class="tag" id="poolDomain">pool.dxstrat.com</div>
+          <h1 class="h1">Mine Bitcoin with a lightweight, transparent pool</h1>
+          <p class="muted">No sign‑ups. Point your miner at our stratum, use your <strong>BTC address</strong> as the username, and watch stats update live via our <code class="kbd">/api</code>.</p>
+
+          <div class="stats-strip" aria-live="polite">
+            <div class="stat"><div class="label">Pool hashrate (5m)</div><div class="value" id="statHash5m">—</div></div>
+            <div class="stat"><div class="label">Miners online</div><div class="value" id="statMiners">—</div></div>
+            <div class="stat"><div class="label">Blocks found</div><div class="value" id="statBlocks">—</div></div>
+            <div class="stat"><div class="label">Fee</div><div class="value" id="statFee">—</div></div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</header>
 
-<main class="wrap">
-  <section id="connect" class="card">
-    <h1>Point your miner</h1>
-    <div class="kt">
-      <div class="mono">stratum+tcp://pool.dxstrat.com:3333</div>
-    </div>
-    <p class="muted">Works with popular miners (cgminer/bmminer/braiins/etc.). Username = your payout address. Password can be anything.</p>
-  </section>
+      <div class="card" id="connect">
+        <div class="pad">
+          <h2 style="margin:0 0 10px">Quick connect</h2>
+          <p class="muted" style="margin:0 0 10px">Point your miner to our stratum endpoint. Username = your BTC address. Password can be anything.</p>
+          <div class="codeblock" style="margin-top:8px">
+            <button class="btn copy" data-copy="#stratum">Copy</button>
+            <pre class="mono" id="stratum">stratum+tcp://pool.dxstrat.com:3333</pre>
+          </div>
 
-  <section id="why" class="grid grid-2">
-    <div class="card">
-      <h2>What makes this pool different</h2>
-      <ul>
-        <li>Low 2% fee with transparent accounting.</li>
-        <li>Fast job updates + safe nTime drift (low stale shares).</li>
-        <li>Daily automatic payouts above your minimum.</li>
-        <li>Open API for dashboards and tooling.</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h2>Quick links</h2>
-      <ul>
-        <li><a href="/api/pool" target="_blank" rel="noopener">/api/pool</a> – basic pool info</li>
-        <li><a href="/api" target="_blank" rel="noopener">/api</a> – API root (if enabled)</li>
-      </ul>
-      <p class="muted">If an endpoint isn’t available yet, this page hides the widget automatically.</p>
-    </div>
-  </section>
+          <div style="height:10px"></div>
+          <details>
+            <summary class="mini"><span class="kbd">cgminer</span> / <span class="kbd">bfgminer</span> example</summary>
+            <div class="codeblock" style="margin-top:10px">
+              <button class="btn copy" data-copy="#ex1">Copy</button>
+              <pre class="mono" id="ex1"># Replace with YOUR BTC address
+cgminer -o stratum+tcp://pool.dxstrat.com:3333 -u bc1qYOURADDRESS -p x
+# or bfgminer
+bfgminer -o stratum+tcp://pool.dxstrat.com:3333 -u bc1qYOURADDRESS -p x</pre>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
 
-  <section id="stats" class="card">
-    <h2>Pool stats</h2>
-    <table class="table">
-      <tbody>
-        <tr><th>Name</th><td id="pool-name">—</td></tr>
-        <tr><th>Domain</th><td id="pool-domain">—</td></tr>
-        <tr><th>Fee</th><td id="pool-fee">—</td></tr>
-        <tr class="hide" id="row-miner-count"><th>Active miners</th><td id="pool-miners">—</td></tr>
-        <tr class="hide" id="row-hashrate"><th>Estimated hashrate</th><td id="pool-hashrate">—</td></tr>
-        <tr class="hide" id="row-blocks24"><th>Blocks (24h)</th><td id="pool-blocks24">—</td></tr>
-      </tbody>
-    </table>
-  </section>
+    <!-- STATS -->
+    <section class="grid" id="stats" aria-live="polite">
+      <div class="card">
+        <div class="pad">
+          <h3 style="margin:0 0 8px">Pool overview</h3>
+          <div class="kvs">
+            <div class="kv"><div class="k">Name</div><div id="kvName">—</div></div>
+            <div class="kv"><div class="k">Domain</div><div id="kvDomain">—</div></div>
+            <div class="kv"><div class="k">Fee</div><div id="kvFee">—</div></div>
+            <div class="kv"><div class="k">Height</div><div id="kvHeight">—</div></div>
+            <div class="kv"><div class="k">Last block</div><div id="kvLastBlock">—</div></div>
+            <div class="kv"><div class="k">Round shares</div><div id="kvRound">—</div></div>
+          </div>
+        </div>
+      </div>
 
-  <section id="miner" class="card">
-    <h2>Miner stats</h2>
-    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
-      <input id="addr" type="text" placeholder="Enter your BTC address (bc1… / 1… / 3…)" />
-      <button class="btn" id="btnLookup">Lookup</button>
-    </div>
-    <div id="miner-res" class="hide" style="margin-top:12px">
-      <table class="table">
-        <tbody>
-          <tr><th>Address</th><td id="m-addr">—</td></tr>
-          <tr><th>Reported hashrate</th><td id="m-hash">—</td></tr>
-          <tr><th>Valid shares (24h)</th><td id="m-shares">—</td></tr>
-          <tr><th>Unpaid balance</th><td id="m-balance">—</td></tr>
-          <tr><th>Last share</th><td id="m-last">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p id="miner-msg" class="muted" style="margin-top:8px"></p>
-  </section>
+      <div class="card">
+        <div class="pad">
+          <h3 style="margin:0 0 8px">Hashrate</h3>
+          <div class="kvs">
+            <div class="kv"><div class="k">5 minutes</div><div id="kvH5">—</div></div>
+            <div class="kv"><div class="k">1 hour</div><div id="kvH1">—</div></div>
+            <div class="kv"><div class="k">24 hours</div><div id="kvH24">—</div></div>
+            <div class="kv"><div class="k">Miners online</div><div id="kvMiners">—</div></div>
+            <div class="kv"><div class="k">Workers</div><div id="kvWorkers">—</div></div>
+          </div>
+        </div>
+      </div>
 
-  <footer class="muted">
-    © <span id="year"></span> Darwin X Pool • Secure • Efficient • Transparent
-  </footer>
-</main>
+      <div class="card">
+        <div class="pad">
+          <h3 style="margin:0 0 8px">API health</h3>
+          <div id="apiHealth" class="mini">
+            <span class="kbd">/api/pool</span>
+            <span class="kbd">/api/stats</span>
+            <span id="apiErr" class="muted"></span>
+          </div>
+          <p class="muted" style="margin-top:8px">All numbers auto‑refresh ~30s.</p>
+        </div>
+      </div>
+    </section>
 
-<script>
-const $ = (s)=>document.querySelector(s);
-const show = (el, yes=true)=> el.classList[yes ? 'remove' : 'add']('hide');
+    <!-- MINER LOOKUP -->
+    <section class="card" id="miner" style="margin-top:24px">
+      <div class="pad">
+        <h3 style="margin:0 0 6px">Miner lookup</h3>
+        <p class="muted">Enter your payout <strong>BTC address</strong> (or account/worker, depending on your miner). We’ll call <code class="kbd">/api/miner/&lt;addr&gt;</code>.</p>
+        <form class="search" id="minerForm">
+          <input id="minerInput" placeholder="bc1q... or 1ABC..." autocomplete="off" />
+          <button class="btn" type="submit">Lookup</button>
+        </form>
+        <div id="minerStatus" class="muted" style="margin-top:8px"></div>
+        <div id="minerSummary" class="stats-strip" style="margin-top:12px"></div>
+        <div id="minerWorkersWrap" style="margin-top:10px"></div>
+        <details style="margin-top:10px">
+          <summary class="mini"><span class="kbd">Raw JSON</span> (debug)</summary>
+          <pre id="minerRaw" class="mono" style="white-space:pre-wrap"></pre>
+        </details>
+      </div>
+    </section>
 
-function fmtHash(h){
-  if(h==null || isNaN(h)) return '—';
-  const units = ['H/s','kH/s','MH/s','GH/s','TH/s','PH/s','EH/s'];
-  let i=0, x=Number(h);
-  while(x>=1000 && i<units.length-1){ x/=1000; i++; }
-  return x.toFixed(x>=100?0:x>=10?1:2)+' '+units[i];
-}
-function fmtAmt(sats){
-  if(sats==null || isNaN(sats)) return '—';
-  return (Number(sats)/1e8).toFixed(8)+' BTC';
-}
+    <!-- ABOUT -->
+    <section class="card" id="about" style="margin-top:24px">
+      <div class="pad">
+        <h3 style="margin:0 0 6px">What makes this pool different</h3>
+        <ul class="list">
+          <li><span class="dot"></span><div>Simple setup: use your BTC address as the username; no accounts.</div></li>
+          <li><span class="dot"></span><div>Transparent API and open configuration. Low 2% fee.</div></li>
+          <li><span class="dot"></span><div>Modern, lightweight stratum and web stack.</div></li>
+        </ul>
+      </div>
+    </section>
 
-async function j(url){
-  const r = await fetch(url, {cache:'no-store'});
-  if(!r.ok) throw new Error(r.status);
-  return r.json();
-}
+    <footer class="wrap" style="padding-left:0;padding-right:0">
+      <div class="muted">© <span id="year"></span> DarwinX. Built for Bitcoin miners. • <a href="https://github.com/caldefenwycke/dxstrat" rel="noopener">GitHub</a></div>
+    </footer>
+  </main>
 
-async function loadPool(){
-  try{
-    const p = await j('/api/pool');
-    $('#pool-name').textContent = p.name ?? 'DarwinX Pool';
-    $('#pool-domain').textContent = p.domain ?? 'dxstrat.com';
-    const fee = (p.fee_percent ?? p.fee ?? 0).toString();
-    $('#pool-fee').textContent = fee + ' %';
-    $('#pill-fee').textContent = fee;
+  <script>
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
 
-    // Try optional endpoints for richer stats. Hide if missing.
-    try{
-      const s = await j('/api/stats'); // adjust if your API uses different path
-      if (s.miners != null) {
-        $('#pool-miners').textContent = s.miners;
-        $('#pill-miner-count').textContent = s.miners;
-        show($('#row-miner-count'), true);
-        show($('#pill-miners'), true);
-      }
-      if (s.hashrate != null) {
-        const hh = fmtHash(s.hashrate);
-        $('#pool-hashrate').textContent = hh;
-        $('#pill-hashrate').textContent = hh;
-        show($('#row-hashrate'), true);
-        show($('#pill-hash'), true);
-      }
-      if (s.blocks24 != null) {
-        $('#pool-blocks24').textContent = s.blocks24;
-        show($('#row-blocks24'), true);
-      }
-    } catch(_) {
-      // no /api/stats yet — that’s fine
+    function formatHashrate(h) {
+      if (h == null || isNaN(h)) return '—';
+      const units = ['H/s','kH/s','MH/s','GH/s','TH/s','PH/s','EH/s'];
+      let i = 0; let v = Number(h);
+      while (v >= 1000 && i < units.length-1) { v /= 1000; i++; }
+      return v.toFixed(v < 10 ? 2 : v < 100 ? 1 : 0) + ' ' + units[i];
     }
-  } catch(e){
-    console.error('pool fetch failed', e);
-  }
-}
+    function fmtNum(n){
+      if (n == null || isNaN(n)) return '—';
+      return Number(n).toLocaleString();
+    }
+    function fmtTime(ts){
+      if (!ts) return '—';
+      const d = typeof ts === 'number' && ts < 2e12 ? new Date(ts*1000) : new Date(ts);
+      return d.toLocaleString();
+    }
 
-function validAddr(a){
-  return /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{24,}$/i.test(a.trim());
-}
+    async function fetchJSON(url) {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(url+': '+res.status);
+      return res.json();
+    }
 
-async function lookupMiner(){
-  const a = $('#addr').value.trim();
-  $('#miner-msg').textContent = '';
-  if(!validAddr(a)){
-    $('#miner-msg').textContent = 'Enter a valid Bitcoin address.';
-    show($('#miner-res'), false);
-    return;
-  }
-  $('#m-addr').textContent = a;
-  show($('#miner-res'), false);
+    async function loadPool() {
+      try {
+        const pool = await fetchJSON('/api/pool');
+        $('#kvName').textContent = pool.name ?? 'DarwinX Pool';
+        $('#kvDomain').textContent = pool.domain ?? 'dxstrat.com';
+        $('#poolDomain').textContent = (pool.domain ? ('pool.'+pool.domain) : 'pool.dxstrat.com');
+        const fee = (pool.fee_percent!=null)? pool.fee_percent+'%':'—';
+        $('#kvFee').textContent = fee;
+        $('#statFee').textContent = fee;
+      } catch (e) {
+        console.warn('pool api failed', e);
+        $('#apiErr').textContent = 'API error: '+e.message;
+      }
+    }
 
-  // Try common patterns and use the first that works
-  const candidates = [
-    `/api/miner/${encodeURIComponent(a)}`,
-    `/api/miner?address=${encodeURIComponent(a)}`,
-    `/api/miners/${encodeURIComponent(a)}`
-  ];
-  let data=null, lastErr=null;
-  for(const u of candidates){
-    try { data = await j(u); break; } catch(e){ lastErr=e; }
-  }
-  if(!data){
-    $('#miner-msg').textContent = 'Miner endpoint not available yet.';
-    return;
-  }
-  // Try to map common field names; fall back gracefully
-  $('#m-hash').textContent   = fmtHash(data.hashrate ?? data.reported_hashrate ?? data.hr);
-  $('#m-shares').textContent = (data.valid_shares_24h ?? data.shares_24h ?? data.valid ?? '—');
-  $('#m-balance').textContent= fmtAmt(data.unpaid_sats ?? data.balance_sats ?? data.unpaid ?? data.balance);
-  $('#m-last').textContent   = (data.last_share_at ?? data.last_share ?? '—');
-  show($('#miner-res'), true);
-}
+    async function loadStats() {
+      try {
+        const s = await fetchJSON('/api/stats');
+        // try a list of common keys; show what we find
+        const hr5 = s.hashrate_5m ?? s.pool_hashrate_5m ?? s.hashrate5m ?? s.hash_5m;
+        const hr1 = s.hashrate_1h ?? s.pool_hashrate_1h ?? s.hashrate1h ?? s.hash_1h;
+        const hr24 = s.hashrate_24h ?? s.pool_hashrate_24h ?? s.hashrate24h ?? s.hash_24h;
+        const miners = s.miners_online ?? s.miners ?? s.active_miners ?? s.clients ?? s.workers_online;
+        const workers = s.workers ?? s.workers_online ?? s.active_workers;
+        const blocks = s.total_blocks_found ?? s.blocks_found ?? s.blocks;
+        const roundShares = s.round_shares ?? s.current_round_shares ?? s.shares_round;
+        const height = s.last_block_height ?? s.height ?? s.block_height;
+        const lastBlockTime = s.last_block_found_at ?? s.last_block_time;
 
-$('#btnLookup').addEventListener('click', lookupMiner);
-$('#addr').addEventListener('keydown', e=>{ if(e.key==='Enter') lookupMiner(); });
-$('#year').textContent = new Date().getFullYear();
-loadPool();
-</script>
+        $('#statHash5m').textContent = formatHashrate(hr5);
+        $('#statMiners').textContent = fmtNum(miners);
+        $('#statBlocks').textContent = fmtNum(blocks);
+
+        $('#kvH5').textContent = formatHashrate(hr5);
+        $('#kvH1').textContent = formatHashrate(hr1);
+        $('#kvH24').textContent = formatHashrate(hr24);
+        $('#kvMiners').textContent = fmtNum(miners);
+        $('#kvWorkers').textContent = fmtNum(workers);
+        $('#kvRound').textContent = roundShares!=null? fmtNum(roundShares) : '—';
+        $('#kvHeight').textContent = height!=null? fmtNum(height) : '—';
+        $('#kvLastBlock').textContent = lastBlockTime? fmtTime(lastBlockTime) : '—';
+
+        // mark API healthy
+        $('#apiErr').textContent = '';
+      } catch (e) {
+        console.warn('stats api failed', e);
+        $('#apiErr').textContent = 'API error: '+e.message;
+      }
+    }
+
+    async function lookupMiner(addr) {
+      $('#minerStatus').textContent = 'Looking up…';
+      $('#minerSummary').innerHTML = '';
+      $('#minerWorkersWrap').innerHTML = '';
+      $('#minerRaw').textContent = '';
+      try {
+        const data = await fetchJSON('/api/miner/'+encodeURIComponent(addr));
+        $('#minerRaw').textContent = JSON.stringify(data, null, 2);
+        $('#minerStatus').textContent = '';
+
+        // Try to discover common fields for a summary
+        const hr = data.hashrate ?? data.hashrate_5m ?? data.total_hashrate ?? data.hr;
+        const bal = data.balance_sats ?? data.payout_balance_sats ?? data.balance ?? data.pending_sats;
+        const paid = data.total_paid_sats ?? data.paid_sats ?? data.total_paid;
+        const last = data.last_share ?? data.last_share_time ?? data.updated_at ?? data.lastSeen;
+        const workers = data.workers ?? data.devices ?? (Array.isArray(data) ? data : null);
+
+        const summary = [];
+        summary.push(['Hashrate', formatHashrate(hr)]);
+        if (bal!=null) summary.push(['Balance (sats)', fmtNum(bal)]);
+        if (paid!=null) summary.push(['Total paid (sats)', fmtNum(paid)]);
+        if (last) summary.push(['Last share', fmtTime(last)]);
+
+        if (summary.length) {
+          summary.forEach(([k,v])=>{
+            const d = document.createElement('div');
+            d.className = 'stat';
+            d.innerHTML = `<div class="label">${k}</div><div class="value">${v}</div>`;
+            $('#minerSummary').appendChild(d);
+          });
+        }
+
+        // Workers table if present
+        const list = Array.isArray(workers) ? workers : (workers && typeof workers === 'object' ? Object.values(workers) : null);
+        if (list && list.length) {
+          const wrap = document.createElement('div');
+          const table = document.createElement('table');
+          table.className = 'table';
+          table.innerHTML = `<thead><tr>
+            <th>Worker</th><th>Hashrate</th><th>Shares</th><th>Last Share</th>
+          </tr></thead><tbody></tbody>`;
+          const tbody = table.querySelector('tbody');
+          list.forEach(w => {
+            const name = w.name ?? w.worker ?? w.id ?? '—';
+            const wh = w.hashrate ?? w.hr ?? w.hashrate_5m;
+            const shares = w.shares ?? w.accepted ?? w.valid ?? w.valid_shares;
+            const lastw = w.last_share ?? w.last_share_time ?? w.updated_at;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${name}</td><td>${formatHashrate(wh)}</td><td>${shares!=null?fmtNum(shares):'—'}</td><td>${lastw?fmtTime(lastw):'—'}</td>`;
+            tbody.appendChild(tr);
+          });
+          wrap.appendChild(table);
+          $('#minerWorkersWrap').appendChild(wrap);
+        } else {
+          $('#minerWorkersWrap').innerHTML = '<div class="empty">No worker details returned.</div>';
+        }
+      } catch (e) {
+        $('#minerStatus').textContent = 'Lookup failed: '+e.message;
+      }
+    }
+
+    function wireCopyButtons(){
+      $$('.copy').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const sel = btn.getAttribute('data-copy');
+          const el = document.querySelector(sel);
+          const text = el ? (el.innerText || el.textContent) : '';
+          if (!text) return;
+          navigator.clipboard.writeText(text.trim()).then(()=>{
+            btn.textContent = 'Copied';
+            setTimeout(()=> btn.textContent = 'Copy', 1200);
+          });
+        });
+      });
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      $('#year').textContent = new Date().getFullYear();
+      wireCopyButtons();
+      loadPool();
+      loadStats();
+      setInterval(loadStats, 30_000);
+
+      $('#minerForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const addr = $('#minerInput').value.trim();
+        if (!addr) { $('#minerStatus').textContent = 'Enter an address'; return; }
+        lookupMiner(addr);
+      });
+    });
+  </script>
+  <noscript><div style="padding:16px" class="muted">Enable JavaScript to see live stats.</div></noscript>
+</body>
 </html>
