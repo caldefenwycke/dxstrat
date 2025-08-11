@@ -3,391 +3,361 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DarwinX Pool</title>
-  <meta name="description" content="DarwinX Bitcoin mining pool – low fee, transparent API, simple setup." />
+  <title>Darwin X Pool</title>
+  <meta name="description" content="Mine bitcoin with Darwin X — intelligent header generation + minimal, fast pool UI." />
   <style>
     :root {
       color-scheme: dark;
       --bg: #0b0d10;
       --panel: #0f1419;
-      --panel-2: #121820;
+      --muted: #92a2b2;
       --text: #e7edf3;
-      --muted: #a9b4bf;
-      --line: #1b242e;
-      --accent: #58a6ff;
-      --ok: #3fb950;
-      --warn: #e3b341;
-      --err: #f85149;
-      --shadow: 0 6px 24px rgba(0,0,0,.35);
-      --radius: 16px;
+      --accent: #4dd2ff;
+      --good: #41d17d;
+      --warn: #f2c14e;
+      --bad:  #ff6b6b;
+      --rad: 18px;
+      --gap: 16px;
+      --pad: 20px;
+      --maxw: 1100px;
     }
-    * { box-sizing: border-box }
-    html,body { height: 100% }
-    body { margin:0; background:var(--bg); color:var(--text); font: 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji" }
-    a { color: var(--accent); text-decoration: none }
-    a:hover { text-decoration: underline }
+    html, body { height: 100%; }
+    body { margin:0; font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+    header.site {
+      position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(120%) blur(8px);
+      background: color-mix(in oklab, var(--bg) 92%, transparent);
+      border-bottom: 1px solid #0f1822;
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .brand { display:flex; align-items:center; gap:10px; font-weight: 700; letter-spacing:.2px; }
+    .brand .bolt { font-size: 18px; }
+    .menu { display: flex; gap: 14px; font-size: 15px; }
+    .menu a { padding: 8px 10px; border-radius: 10px; }
+    .menu a:hover { background: #0f1419; text-decoration: none; }
 
-    /* Topbar */
-    .topbar { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(120%) blur(8px); background: rgba(11,13,16,.7); border-bottom:1px solid var(--line) }
-    .topbar-inner { max-width: 1200px; margin:0 auto; display:flex; align-items:center; gap:18px; padding:12px 20px }
-    .brand { display:flex; align-items:center; gap:10px; font-weight:700 }
-    .brand .dot { width:10px; height:10px; border-radius:50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(63,185,80,.15) }
-    nav { margin-left:auto; display:flex; gap:18px }
-    nav a { opacity:.9 }
+    .hero { padding: 34px 0 10px; }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(26px, 2.6vw + 16px, 40px); letter-spacing:.2px; }
+    .hero p.lead { margin: 0; color: var(--muted); font-size: clamp(15px, 1vw + 12px, 18px); }
 
-    /* Wrap & sections */
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 64px }
-    .hero { display:grid; grid-template-columns: 1.2fr .8fr; gap:24px; align-items:stretch; margin-top:24px }
-    @media (max-width: 870px){ .hero{ grid-template-columns: 1fr } }
+    .two-col { display:grid; grid-template-columns: 1fr; gap: var(--gap); margin: 22px 0 10px; }
+    @media (min-width: 860px) { .two-col { grid-template-columns: 1fr 1fr; } }
 
-    .card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
-    .card .pad { padding: 20px }
-    .h1 { font-size: clamp(26px, 3vw, 36px); line-height:1.1; margin: 0 0 10px; letter-spacing: .2px }
-    .muted { color: var(--muted) }
-    .tag { display:inline-block; padding: 4px 10px; border:1px solid var(--line); border-radius: 999px; font-size: 12px; color:var(--muted) }
+    .card { background: var(--panel); border: 1px solid #13202c; border-radius: var(--rad); padding: var(--pad); box-shadow: 0 0 0 1px rgba(255,255,255,0.015) inset; }
+    .card h3 { margin: 0 0 10px; font-size: 16px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+    .row { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
 
-    .stats-strip { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; margin-top: 14px }
-    @media (max-width:920px){ .stats-strip { grid-template-columns: repeat(2, minmax(0,1fr)) } }
-    @media (max-width:520px){ .stats-strip { grid-template-columns: 1fr } }
-    .stat { padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:#0d1217 }
-    .stat .label { font-size:12px; color:var(--muted) }
-    .stat .value { margin-top:6px; font-weight:700; font-size:18px }
+    .kv { display:flex; align-items:center; justify-content: space-between; padding: 10px 12px; background:#0b1218; border:1px solid #13202c; border-radius:12px; }
+    .kv .k { color: var(--muted); font-size: 13px; }
+    .kv .v { font-weight: 600; }
 
-    .grid { display:grid; gap:18px; grid-template-columns: repeat(3, minmax(0,1fr)); margin-top:24px }
-    @media (max-width:1000px){ .grid{ grid-template-columns: repeat(2, minmax(0,1fr)) } }
-    @media (max-width:700px){ .grid{ grid-template-columns: 1fr } }
+    .endpoint { display:flex; gap:10px; }
+    .endpoint input { flex:1; background:#0b1218; border:1px solid #152232; color:var(--text); padding:10px 12px; border-radius:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .btn { background:#121a22; border:1px solid #1a2a3a; color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; }
+    .btn:hover { background:#141e28; }
 
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px }
-    .kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#0d1217; padding:2px 6px; border-radius:6px; border:1px solid var(--line) }
+    .full { margin:28px 0 40px; }
+    .full .section { margin: 0 0 16px; }
+    .full h2 { margin: 26px 0 10px; font-size: 20px; letter-spacing:.3px; }
+    .muted { color: var(--muted); }
 
-    .btn { display:inline-flex; align-items:center; gap:10px; appearance:none; border:1px solid var(--line); background:#0d1217; color:var(--text); border-radius: 12px; padding:10px 14px; cursor:pointer }
-    .btn:hover { background:#121821 }
+    .tag { display:inline-block; border:1px solid #203140; background:#0b1218; padding:3px 8px; border-radius:999px; font-size:12px; color:var(--muted); }
+    .grid-3 { display:grid; gap: var(--gap); grid-template-columns: 1fr; }
+    @media (min-width: 980px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
 
-    .list { display:grid; gap:10px; margin: 8px 0 0; padding:0; list-style:none }
-    .list li { display:flex; gap:10px; align-items:flex-start }
-    .list .dot { margin-top:.45em; width:7px; height:7px; background:var(--accent); border-radius:50% }
+    .miner-lookup { display:flex; gap:10px; margin-top:8px; }
+    .miner-lookup input { flex:1; background:#0b1218; border:1px solid #152232; color:var(--text); padding:10px 12px; border-radius:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
-    .codeblock { position:relative; border:1px solid var(--line); border-radius:12px; overflow:auto; background: #0d1217 }
-    .codeblock pre { margin:0; padding:14px }
-    .codeblock .copy { position:absolute; top:8px; right:8px }
+    .tbl { width:100%; border-collapse: collapse; font-size:14px; }
+    .tbl th, .tbl td { padding:10px 8px; border-bottom:1px solid #182532; text-align:left; }
+    .pill { padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #244055; }
 
-    .mini { display:flex; gap:10px; align-items:center; flex-wrap:wrap }
-    .kvs { display:grid; grid-template-columns: auto 1fr; gap:8px 12px }
-    .kv .k { color:var(--muted) }
+    footer { padding: 30px 0 40px; color: var(--muted); text-align:center; border-top:1px solid #0f1822; }
 
-    .search { display:flex; gap:10px; align-items:center; margin-top:10px }
-    .search input { flex:1; border-radius:12px; background:#0d1217; color:var(--text); border:1px solid var(--line); padding:10px 12px }
+    .small { font-size: 12.5px; }
+    .ok { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
 
-    .table { width:100%; border-collapse: collapse; margin-top:10px; font-size:14px }
-    .table th, .table td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left }
-    .table th { color:var(--muted); font-weight:600; background:#0b1116 }
-    .empty { padding:20px; text-align:center; color:var(--muted) }
-
-    footer { margin-top: 48px; color: var(--muted) }
+    html { scroll-behavior: smooth; }
+    .sp { height: 1px; margin-top: 70px; } /* anchor spacer */
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand"><span class="dot" aria-hidden="true"></span> DarwinX Pool</div>
-      <nav>
-        <a href="#connect">Connect</a>
-        <a href="#stats">Stats</a>
-        <a href="#miner">Miner Lookup</a>
-        <a href="#about">About</a>
+  <header class="site">
+    <div class="wrap nav">
+      <div class="brand"><span class="bolt">⚡</span> Darwin X</div>
+      <nav class="menu">
+        <a href="#pool">Pool</a>
+        <a href="#miner">Miner</a>
+        <a href="#headers">Headers</a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
-    <!-- HERO + HEADER STATS -->
     <section class="hero">
-      <div class="card">
-        <div class="pad">
-          <div class="tag" id="poolDomain">pool.dxstrat.com</div>
-          <h1 class="h1">Mine Bitcoin with a lightweight, transparent pool</h1>
-          <p class="muted">No sign‑ups. Point your miner at our stratum, use your <strong>BTC address</strong> as the username, and watch stats update live via our <code class="kbd">/api</code>.</p>
+      <h1>Mine bitcoin with Darwin X pool</h1>
+      <p class="lead">Intelligent header generation, combined with a minimal, fast pool UI. Just point your miner and hash.</p>
+    </section>
 
-          <div class="stats-strip" aria-live="polite">
-            <div class="stat"><div class="label">Pool hashrate (5m)</div><div class="value" id="statHash5m">—</div></div>
-            <div class="stat"><div class="label">Miners online</div><div class="value" id="statMiners">—</div></div>
-            <div class="stat"><div class="label">Blocks found</div><div class="value" id="statBlocks">—</div></div>
-            <div class="stat"><div class="label">Fee</div><div class="value" id="statFee">—</div></div>
-          </div>
+    <div class="sp" id="pool"></div>
+
+    <section class="two-col">
+      <!-- Left: Stratum endpoint -->
+      <div class="card">
+        <h3>Stratum endpoint</h3>
+        <div class="endpoint">
+          <input id="endpoint" value="stratum+tcp://pool.dxstrat.com:3333" readonly />
+          <button class="btn" id="copyEp">Copy</button>
+        </div>
+        <p class="small muted" style="margin-top:8px">User: <code>&lt;your-bitcoin-address&gt;</code> · Password: <code>x</code></p>
+        <div class="row" style="margin-top:10px">
+          <div class="kv"><span class="k">Pool fee</span><span class="v" id="poolFee">—</span></div>
+          <div class="kv"><span class="k">Min payout</span><span class="v" id="minPayout">1,000,000 sats</span></div>
         </div>
       </div>
 
-      <div class="card" id="connect">
-        <div class="pad">
-          <h2 style="margin:0 0 10px">Quick connect</h2>
-          <p class="muted" style="margin:0 0 10px">Point your miner to our stratum endpoint. Username = your BTC address. Password can be anything.</p>
-          <div class="codeblock" style="margin-top:8px">
-            <button class="btn copy" data-copy="#stratum">Copy</button>
-            <pre class="mono" id="stratum">stratum+tcp://pool.dxstrat.com:3333</pre>
-          </div>
+      <!-- Right: Pool status snapshot -->
+      <div class="card">
+        <h3>Pool status</h3>
+        <div class="row">
+          <div class="kv"><span class="k">Hashrate</span><span class="v" id="poolHash">—</span></div>
+          <div class="kv"><span class="k">Miners online</span><span class="v" id="minersOnline">—</span></div>
+          <div class="kv"><span class="k">24h blocks</span><span class="v" id="blocks24h">—</span></div>
+          <div class="kv"><span class="k">Round shares</span><span class="v" id="roundShares">—</span></div>
+        </div>
+        <p class="small muted" style="margin-top:8px">Auto-refreshes every 30s.</p>
+      </div>
+    </section>
 
-          <div style="height:10px"></div>
-          <details>
-            <summary class="mini"><span class="kbd">cgminer</span> / <span class="kbd">bfgminer</span> example</summary>
-            <div class="codeblock" style="margin-top:10px">
-              <button class="btn copy" data-copy="#ex1">Copy</button>
-              <pre class="mono" id="ex1"># Replace with YOUR BTC address
-cgminer -o stratum+tcp://pool.dxstrat.com:3333 -u bc1qYOURADDRESS -p x
-# or bfgminer
-bfgminer -o stratum+tcp://pool.dxstrat.com:3333 -u bc1qYOURADDRESS -p x</pre>
-            </div>
-          </details>
+    <!-- Miner section -->
+    <div class="sp" id="miner"></div>
+    <section class="card" style="margin-top:18px">
+      <h3>Miner stats</h3>
+      <div class="miner-lookup">
+        <input id="minerAddr" placeholder="Enter your BTC address to find workers" />
+        <button class="btn" id="lookupBtn">Search</button>
+      </div>
+      <div id="minerResult" style="margin-top:14px" class="small muted">Enter your address to view worker hashrates and last shares.</div>
+    </section>
+
+    <!-- Headers section -->
+    <div class="sp" id="headers"></div>
+    <section class="card" style="margin-top:18px">
+      <h3>Header generation</h3>
+      <div class="row">
+        <div class="kv"><span class="k">Headers / sec</span><span class="v" id="hdrRate">—</span></div>
+        <div class="kv"><span class="k">Target</span><span class="v" id="hdrTarget">—</span></div>
+        <div class="kv"><span class="k">Orphan rate</span><span class="v" id="orphanRate">—</span></div>
+        <div class="kv"><span class="k">Last 1 min</span><span class="v" id="hdr1m">—</span></div>
+      </div>
+      <p class="small muted" id="hdrNote" style="margin-top:8px">If header metrics aren't available yet, this section will populate once the stratum engine begins generating headers.</p>
+    </section>
+
+    <!-- Full-width content blocks -->
+    <section class="full">
+      <div class="grid-3">
+        <div class="card section" id="settings">
+          <h2>Miner settings</h2>
+          <p>Point any SHA-256 miner at our stratum endpoint. Use your Bitcoin address as the username and any password (e.g. <code>x</code>).</p>
+          <ul class="small muted">
+            <li>URL: <code id="epText2">stratum+tcp://pool.dxstrat.com:3333</code></li>
+            <li>User: <code>&lt;your-bitcoin-address&gt;</code></li>
+            <li>Pass: <code>x</code></li>
+          </ul>
+        </div>
+        <div class="card section" id="tips">
+          <h2>Miner tips</h2>
+          <ul class="small">
+            <li>Keep firmware updated; aim for stable temps and power.</li>
+            <li>Use a worker suffix (e.g. <code>bc1...worker1</code>) to see per-rig stats.</li>
+            <li>Prefer wired networking; avoid packet loss for steady shares.</li>
+          </ul>
+        </div>
+        <div class="card section" id="fees">
+          <h2>Fees & payouts</h2>
+          <p class="small">Pool fee: <strong id="poolFee2">—</strong>. Payouts run daily at <strong id="payoutHour">02:00 UTC</strong> with a minimum of <strong id="minPayout2">1,000,000 sats</strong>.</p>
+          <p class="muted small">We use a transparent score-based system with variance smoothing.</p>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top: var(--gap)">
+        <div class="card section" id="transparency">
+          <h2>Transparency</h2>
+          <p class="small">Stats, fees and payouts are shown in real-time. Our coinbase tag is <code>/DarwinXPool/</code>.</p>
+        </div>
+        <div class="card section" id="api">
+          <h2>API</h2>
+          <p class="small">Public JSON endpoints:</p>
+          <ul class="small">
+            <li><code>GET /api/pool</code> — name, domain, fee</li>
+            <li><code>GET /api/stats</code> — hashrates & online miners</li>
+            <li><code>GET /api/miner/&lt;address&gt;</code> — your workers</li>
+          </ul>
+          <p class="small muted">More endpoints coming—header telemetry, rounds and blocks.</p>
+        </div>
+        <div class="card section" id="why">
+          <h2>Why choose Darwin X?</h2>
+          <ul class="small">
+            <li>Intelligent header generation tuned for low stale rates.</li>
+            <li>Simple UI; zero bloat. Fast JSON API.</li>
+            <li>Fair, predictable payouts with clear rules.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top: var(--gap)">
+        <div class="card section" id="faq">
+          <h2>FAQ</h2>
+          <p class="small"><strong>When do I get paid?</strong> Daily at <span id="payoutHour2">02:00 UTC</span> once you pass the minimum.</p>
+          <p class="small"><strong>What is the minimum?</strong> <span id="minPayout3">1,000,000 sats</span>.</p>
+          <p class="small"><strong>How do I see my miners?</strong> Use your BTC address in the search above.</p>
+        </div>
+        <div class="card section" id="support">
+          <h2>Support</h2>
+          <p class="small">Need help? Email <a href="mailto:support@dxstrat.com">support@dxstrat.com</a> or join our Discord (link on request).</p>
+        </div>
+        <div class="card section">
+          <h2>Status</h2>
+          <p class="small">API health: <span id="apiHealth" class="pill">checking…</span></p>
+          <p class="small">Web last updated: <time id="buildTime"></time></p>
         </div>
       </div>
     </section>
 
-    <!-- STATS -->
-    <section class="grid" id="stats" aria-live="polite">
-      <div class="card">
-        <div class="pad">
-          <h3 style="margin:0 0 8px">Pool overview</h3>
-          <div class="kvs">
-            <div class="kv"><div class="k">Name</div><div id="kvName">—</div></div>
-            <div class="kv"><div class="k">Domain</div><div id="kvDomain">—</div></div>
-            <div class="kv"><div class="k">Fee</div><div id="kvFee">—</div></div>
-            <div class="kv"><div class="k">Height</div><div id="kvHeight">—</div></div>
-            <div class="kv"><div class="k">Last block</div><div id="kvLastBlock">—</div></div>
-            <div class="kv"><div class="k">Round shares</div><div id="kvRound">—</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="pad">
-          <h3 style="margin:0 0 8px">Hashrate</h3>
-          <div class="kvs">
-            <div class="kv"><div class="k">5 minutes</div><div id="kvH5">—</div></div>
-            <div class="kv"><div class="k">1 hour</div><div id="kvH1">—</div></div>
-            <div class="kv"><div class="k">24 hours</div><div id="kvH24">—</div></div>
-            <div class="kv"><div class="k">Miners online</div><div id="kvMiners">—</div></div>
-            <div class="kv"><div class="k">Workers</div><div id="kvWorkers">—</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="pad">
-          <h3 style="margin:0 0 8px">API health</h3>
-          <div id="apiHealth" class="mini">
-            <span class="kbd">/api/pool</span>
-            <span class="kbd">/api/stats</span>
-            <span id="apiErr" class="muted"></span>
-          </div>
-          <p class="muted" style="margin-top:8px">All numbers auto‑refresh ~30s.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- MINER LOOKUP -->
-    <section class="card" id="miner" style="margin-top:24px">
-      <div class="pad">
-        <h3 style="margin:0 0 6px">Miner lookup</h3>
-        <p class="muted">Enter your payout <strong>BTC address</strong> (or account/worker, depending on your miner). We’ll call <code class="kbd">/api/miner/&lt;addr&gt;</code>.</p>
-        <form class="search" id="minerForm">
-          <input id="minerInput" placeholder="bc1q... or 1ABC..." autocomplete="off" />
-          <button class="btn" type="submit">Lookup</button>
-        </form>
-        <div id="minerStatus" class="muted" style="margin-top:8px"></div>
-        <div id="minerSummary" class="stats-strip" style="margin-top:12px"></div>
-        <div id="minerWorkersWrap" style="margin-top:10px"></div>
-        <details style="margin-top:10px">
-          <summary class="mini"><span class="kbd">Raw JSON</span> (debug)</summary>
-          <pre id="minerRaw" class="mono" style="white-space:pre-wrap"></pre>
-        </details>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section class="card" id="about" style="margin-top:24px">
-      <div class="pad">
-        <h3 style="margin:0 0 6px">What makes this pool different</h3>
-        <ul class="list">
-          <li><span class="dot"></span><div>Simple setup: use your BTC address as the username; no accounts.</div></li>
-          <li><span class="dot"></span><div>Transparent API and open configuration. Low 2% fee.</div></li>
-          <li><span class="dot"></span><div>Modern, lightweight stratum and web stack.</div></li>
-        </ul>
-      </div>
-    </section>
-
-    <footer class="wrap" style="padding-left:0;padding-right:0">
-      <div class="muted">© <span id="year"></span> DarwinX. Built for Bitcoin miners. • <a href="https://github.com/caldefenwycke/dxstrat" rel="noopener">GitHub</a></div>
-    </footer>
+    <footer>© 2025 Darwin X. Hash smarter. ⚡</footer>
   </main>
 
   <script>
-    const $ = (sel, el=document) => el.querySelector(sel);
-    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+    const $ = (sel) => document.querySelector(sel);
+    const fmt = {
+      int: (n) => (n==null?"—":Number(n).toLocaleString()),
+      sats: (n) => (n==null?"—":`${Number(n).toLocaleString()} sats`),
+      rate: (h) => {
+        if (h==null) return "—";
+        const units = ["H/s","kH/s","MH/s","GH/s","TH/s","PH/s","EH/s"];
+        let i = 0; let v = Number(h);
+        while (v >= 1000 && i < units.length-1) { v/=1000; i++; }
+        return `${v.toFixed(v<10?2:1)} ${units[i]}`;
+      }
+    };
 
-    function formatHashrate(h) {
-      if (h == null || isNaN(h)) return '—';
-      const units = ['H/s','kH/s','MH/s','GH/s','TH/s','PH/s','EH/s'];
-      let i = 0; let v = Number(h);
-      while (v >= 1000 && i < units.length-1) { v /= 1000; i++; }
-      return v.toFixed(v < 10 ? 2 : v < 100 ? 1 : 0) + ' ' + units[i];
-    }
-    function fmtNum(n){
-      if (n == null || isNaN(n)) return '—';
-      return Number(n).toLocaleString();
-    }
-    function fmtTime(ts){
-      if (!ts) return '—';
-      const d = typeof ts === 'number' && ts < 2e12 ? new Date(ts*1000) : new Date(ts);
-      return d.toLocaleString();
+    async function fetchJSON(url, {timeout=8000}={}) {
+      const ctrl = new AbortController();
+      const id = setTimeout(()=>ctrl.abort(), timeout);
+      try {
+        const r = await fetch(url, {signal: ctrl.signal});
+        if (!r.ok) throw new Error(`${r.status}`);
+        return await r.json();
+      } finally { clearTimeout(id); }
     }
 
-    async function fetchJSON(url) {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) throw new Error(url+': '+res.status);
-      return res.json();
+    // Populate build time
+    $('#buildTime').textContent = new Date().toUTCString();
+
+    // Pool + stats
+    let domain = location.host;
+    let stratumPort = 3333;
+    let payoutMin = 1_000_000;   // default fallback
+    let payoutHour = '02';       // default fallback (UTC hour string)
+
+    function applyEndpoints() {
+      const ep = `stratum+tcp://pool.${domain.replace(/^pool\./,'')}:` + stratumPort;
+      $('#endpoint').value = ep;
+      $('#epText2').textContent = ep;
     }
 
     async function loadPool() {
       try {
-        const pool = await fetchJSON('/api/pool');
-        $('#kvName').textContent = pool.name ?? 'DarwinX Pool';
-        $('#kvDomain').textContent = pool.domain ?? 'dxstrat.com';
-        $('#poolDomain').textContent = (pool.domain ? ('pool.'+pool.domain) : 'pool.dxstrat.com');
-        const fee = (pool.fee_percent!=null)? pool.fee_percent+'%':'—';
-        $('#kvFee').textContent = fee;
-        $('#statFee').textContent = fee;
-      } catch (e) {
-        console.warn('pool api failed', e);
-        $('#apiErr').textContent = 'API error: '+e.message;
-      }
+        const p = await fetchJSON('/api/pool');
+        if (p?.domain) domain = p.domain; // backend domain (dxstrat.com)
+        if (p?.stratum_port) stratumPort = p.stratum_port;
+        if (p?.fee_percent != null) {
+          $('#poolFee').textContent = p.fee_percent + '%';
+          $('#poolFee2').textContent = p.fee_percent + '%';
+        }
+        if (p?.payout_min_sats != null) payoutMin = p.payout_min_sats;
+        if (p?.payout_daily_hour_utc) payoutHour = String(p.payout_daily_hour_utc).padStart(2,'0');
+      } catch {}
+      applyEndpoints();
+      // reflect payouts
+      $('#minPayout').textContent = fmt.sats(payoutMin);
+      $('#minPayout2').textContent = fmt.sats(payoutMin);
+      $('#minPayout3').textContent = fmt.sats(payoutMin);
+      $('#payoutHour').textContent = `${payoutHour}:00 UTC`;
+      $('#payoutHour2').textContent = `${payoutHour}:00 UTC`;
     }
 
     async function loadStats() {
+      let ok = false;
       try {
         const s = await fetchJSON('/api/stats');
-        // try a list of common keys; show what we find
-        const hr5 = s.hashrate_5m ?? s.pool_hashrate_5m ?? s.hashrate5m ?? s.hash_5m;
-        const hr1 = s.hashrate_1h ?? s.pool_hashrate_1h ?? s.hashrate1h ?? s.hash_1h;
-        const hr24 = s.hashrate_24h ?? s.pool_hashrate_24h ?? s.hashrate24h ?? s.hash_24h;
-        const miners = s.miners_online ?? s.miners ?? s.active_miners ?? s.clients ?? s.workers_online;
-        const workers = s.workers ?? s.workers_online ?? s.active_workers;
-        const blocks = s.total_blocks_found ?? s.blocks_found ?? s.blocks;
-        const roundShares = s.round_shares ?? s.current_round_shares ?? s.shares_round;
-        const height = s.last_block_height ?? s.height ?? s.block_height;
-        const lastBlockTime = s.last_block_found_at ?? s.last_block_time;
+        ok = true;
+        if (s?.pool_hashrate != null) $('#poolHash').textContent = fmt.rate(s.pool_hashrate);
+        if (s?.miners_online != null) $('#minersOnline').textContent = fmt.int(s.miners_online);
+        if (s?.blocks_24h != null) $('#blocks24h').textContent = fmt.int(s.blocks_24h);
+        if (s?.round_shares != null) $('#roundShares').textContent = fmt.int(s.round_shares);
+        if (s?.stratum_port != null) { stratumPort = s.stratum_port; applyEndpoints(); }
+        // Try to surface header metrics if folded into stats
+        if (s?.header_rate != null) $('#hdrRate').textContent = fmt.int(s.header_rate);
+        if (s?.headers_last_1m != null) $('#hdr1m').textContent = fmt.int(s.headers_last_1m);
+        if (s?.orphan_rate != null) $('#orphanRate').textContent = s.orphan_rate + '%';
+        if (s?.headers_target != null) $('#hdrTarget').textContent = fmt.int(s.headers_target);
+      } catch {}
+      $('#apiHealth').textContent = ok ? 'OK' : 'unreachable';
+      $('#apiHealth').className = 'pill ' + (ok ? 'ok' : 'bad');
+    }
 
-        $('#statHash5m').textContent = formatHashrate(hr5);
-        $('#statMiners').textContent = fmtNum(miners);
-        $('#statBlocks').textContent = fmtNum(blocks);
-
-        $('#kvH5').textContent = formatHashrate(hr5);
-        $('#kvH1').textContent = formatHashrate(hr1);
-        $('#kvH24').textContent = formatHashrate(hr24);
-        $('#kvMiners').textContent = fmtNum(miners);
-        $('#kvWorkers').textContent = fmtNum(workers);
-        $('#kvRound').textContent = roundShares!=null? fmtNum(roundShares) : '—';
-        $('#kvHeight').textContent = height!=null? fmtNum(height) : '—';
-        $('#kvLastBlock').textContent = lastBlockTime? fmtTime(lastBlockTime) : '—';
-
-        // mark API healthy
-        $('#apiErr').textContent = '';
-      } catch (e) {
-        console.warn('stats api failed', e);
-        $('#apiErr').textContent = 'API error: '+e.message;
-      }
+    async function loadHeaders() {
+      // Optional endpoint. If missing, we keep what's set by loadStats.
+      try {
+        const h = await fetchJSON('/api/headers');
+        if (h?.rate != null) $('#hdrRate').textContent = fmt.int(h.rate);
+        if (h?.target != null) $('#hdrTarget').textContent = fmt.int(h.target);
+        if (h?.orphan_rate != null) $('#orphanRate').textContent = h.orphan_rate + '%';
+        if (h?.last_1m != null) $('#hdr1m').textContent = fmt.int(h.last_1m);
+        $('#hdrNote').textContent = 'Live header telemetry';
+        $('#hdrNote').classList.remove('muted');
+      } catch {}
     }
 
     async function lookupMiner(addr) {
-      $('#minerStatus').textContent = 'Looking up…';
-      $('#minerSummary').innerHTML = '';
-      $('#minerWorkersWrap').innerHTML = '';
-      $('#minerRaw').textContent = '';
+      const out = $('#minerResult');
+      if (!addr || addr.length < 8) { out.textContent = 'Enter your address to view workers.'; return; }
+      out.textContent = 'Loading…';
       try {
-        const data = await fetchJSON('/api/miner/'+encodeURIComponent(addr));
-        $('#minerRaw').textContent = JSON.stringify(data, null, 2);
-        $('#minerStatus').textContent = '';
-
-        // Try to discover common fields for a summary
-        const hr = data.hashrate ?? data.hashrate_5m ?? data.total_hashrate ?? data.hr;
-        const bal = data.balance_sats ?? data.payout_balance_sats ?? data.balance ?? data.pending_sats;
-        const paid = data.total_paid_sats ?? data.paid_sats ?? data.total_paid;
-        const last = data.last_share ?? data.last_share_time ?? data.updated_at ?? data.lastSeen;
-        const workers = data.workers ?? data.devices ?? (Array.isArray(data) ? data : null);
-
-        const summary = [];
-        summary.push(['Hashrate', formatHashrate(hr)]);
-        if (bal!=null) summary.push(['Balance (sats)', fmtNum(bal)]);
-        if (paid!=null) summary.push(['Total paid (sats)', fmtNum(paid)]);
-        if (last) summary.push(['Last share', fmtTime(last)]);
-
-        if (summary.length) {
-          summary.forEach(([k,v])=>{
-            const d = document.createElement('div');
-            d.className = 'stat';
-            d.innerHTML = `<div class="label">${k}</div><div class="value">${v}</div>`;
-            $('#minerSummary').appendChild(d);
-          });
+        const m = await fetchJSON(`/api/miner/${encodeURIComponent(addr)}`);
+        if (!m || (!m.workers && !m.hashrate)) { out.textContent = 'No data for that address yet.'; return; }
+        const workers = m.workers || [];
+        let html = '';
+        html += `<div class="kv" style="margin-bottom:8px"><span class="k">Miner hashrate</span><span class="v">${fmt.rate(m.hashrate || 0)}</span></div>`;
+        if (workers.length) {
+          html += '<div style="overflow:auto">\n<table class="tbl">\n<thead><tr><th>Worker</th><th>Hashrate</th><th>Last share</th><th>Accepted</th><th>Rejected</th></tr></thead><tbody>';
+          for (const w of workers) {
+            html += `<tr><td>${w.name || '—'}</td><td>${fmt.rate(w.hashrate||0)}</td><td>${w.last_share_ago || '—'}</td><td>${fmt.int(w.accepted||0)}</td><td>${fmt.int(w.rejected||0)}</td></tr>`;
+          }
+          html += '</tbody></table></div>';
         }
-
-        // Workers table if present
-        const list = Array.isArray(workers) ? workers : (workers && typeof workers === 'object' ? Object.values(workers) : null);
-        if (list && list.length) {
-          const wrap = document.createElement('div');
-          const table = document.createElement('table');
-          table.className = 'table';
-          table.innerHTML = `<thead><tr>
-            <th>Worker</th><th>Hashrate</th><th>Shares</th><th>Last Share</th>
-          </tr></thead><tbody></tbody>`;
-          const tbody = table.querySelector('tbody');
-          list.forEach(w => {
-            const name = w.name ?? w.worker ?? w.id ?? '—';
-            const wh = w.hashrate ?? w.hr ?? w.hashrate_5m;
-            const shares = w.shares ?? w.accepted ?? w.valid ?? w.valid_shares;
-            const lastw = w.last_share ?? w.last_share_time ?? w.updated_at;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${name}</td><td>${formatHashrate(wh)}</td><td>${shares!=null?fmtNum(shares):'—'}</td><td>${lastw?fmtTime(lastw):'—'}</td>`;
-            tbody.appendChild(tr);
-          });
-          wrap.appendChild(table);
-          $('#minerWorkersWrap').appendChild(wrap);
-        } else {
-          $('#minerWorkersWrap').innerHTML = '<div class="empty">No worker details returned.</div>';
-        }
+        out.innerHTML = html;
       } catch (e) {
-        $('#minerStatus').textContent = 'Lookup failed: '+e.message;
+        out.textContent = 'Lookup failed. Try again in a moment.';
       }
     }
 
-    function wireCopyButtons(){
-      $$('.copy').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const sel = btn.getAttribute('data-copy');
-          const el = document.querySelector(sel);
-          const text = el ? (el.innerText || el.textContent) : '';
-          if (!text) return;
-          navigator.clipboard.writeText(text.trim()).then(()=>{
-            btn.textContent = 'Copied';
-            setTimeout(()=> btn.textContent = 'Copy', 1200);
-          });
-        });
-      });
-    }
-
-    // Init
-    document.addEventListener('DOMContentLoaded', () => {
-      $('#year').textContent = new Date().getFullYear();
-      wireCopyButtons();
-      loadPool();
-      loadStats();
-      setInterval(loadStats, 30_000);
-
-      $('#minerForm').addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const addr = $('#minerInput').value.trim();
-        if (!addr) { $('#minerStatus').textContent = 'Enter an address'; return; }
-        lookupMiner(addr);
-      });
+    $('#copyEp').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText($('#endpoint').value); $('#copyEp').textContent = 'Copied'; setTimeout(()=>$('#copyEp').textContent='Copy', 1200);} catch {}
     });
+    $('#lookupBtn').addEventListener('click', ()=> lookupMiner($('#minerAddr').value.trim()));
+    $('#minerAddr').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#lookupBtn').click(); });
+
+    // initial load + polling
+    loadPool();
+    loadStats();
+    loadHeaders();
+    setInterval(loadStats, 30_000);
   </script>
-  <noscript><div style="padding:16px" class="muted">Enable JavaScript to see live stats.</div></noscript>
 </body>
 </html>
