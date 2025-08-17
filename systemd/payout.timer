@@ -1,0 +1,10 @@
+[Unit]
+Description=dxstrat payout timer
+
+[Timer]
+OnBootSec=2m
+OnUnitActiveSec=15m
+Unit=dxstrat-payout.service
+
+[Install]
+WantedBy=timers.target

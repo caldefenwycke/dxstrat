@@ -1,0 +1,8 @@
+[Unit]
+Description=dxstrat PPLNS payout
+
+[Service]
+WorkingDirectory=/opt/darwinx/dxstrat/engine/x4pool
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 payout.py
+User=root
