@@ -1,0 +1,13 @@
+[Unit]
+Description=DarwinX Stratum V1
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/darwinx/dxstrat
+EnvironmentFile=/opt/darwinx/dxstrat/config/.env
+ExecStart=/usr/bin/python3 -m stratum.server
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

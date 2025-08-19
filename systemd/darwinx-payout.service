@@ -1,0 +1,13 @@
+[Unit]
+Description=DarwinX Payout Runner
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/darwinx/dxstrat
+EnvironmentFile=/opt/darwinx/dxstrat/config/.env
+ExecStart=/usr/bin/python3 -m payout.runner
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
