@@ -1,0 +1,6 @@
+config/.env
+runtime/
+logs/
+venv/
+__pycache__/
+*.log

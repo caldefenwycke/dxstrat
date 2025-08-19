@@ -1,0 +1,3 @@
+[submodule "third_party/ckpool"]
+	path = third_party/ckpool
+	url = https://github.com/ctubio/ckpool

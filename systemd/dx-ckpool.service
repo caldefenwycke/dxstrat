@@ -1,0 +1,17 @@
+[Unit]
+Description=DarwinX ckpool (internal)
+After=network-online.target bitcoind.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/darwinx
+EnvironmentFile=/opt/darwinx/config/.env
+ExecStartPre=/bin/bash -lc '/opt/darwinx/scripts/build_ckpool.sh'
+ExecStartPre=/bin/bash -lc '/opt/darwinx/scripts/deploy_ckpool.sh'
+ExecStart=/opt/darwinx/third_party/ckpool/src/ckpool -A -L -c /opt/darwinx/runtime/ckpool.conf -l 5
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

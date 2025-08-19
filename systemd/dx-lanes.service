@@ -1,0 +1,14 @@
+[Unit]
+Description=DarwinX ABCX lanes proxy (public 3333)
+After=dx-ckpool.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/darwinx
+EnvironmentFile=/opt/darwinx/config/.env
+ExecStart=/opt/darwinx/venv/bin/python -u /opt/darwinx/scripts/lanes-proxy.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
