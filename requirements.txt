@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+pydantic
+requests
+python-dotenv
+base58
+bech32
